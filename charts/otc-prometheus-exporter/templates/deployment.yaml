@@ -13,29 +13,55 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      {{- if .Values.image.imagePullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecrets }}
+      {{ end }}
       containers:
         - name: {{ .Release.Name }}
-          image: "{{ .Values.image.imageRepository}}/otc-prometheus-exporter:{{ .Values.image.imageTag }}"
+          image: "{{ .Values.image.imageRepository}}/{{ .Values.image.imageName }}:{{ .Values.image.imageTag }}"
+          imagePullPolicy: "{{ .Values.image.imagePullPolicy | default "IfNotPresent" }}"
           ports:
-            - containerPort: {{ .Values.metricsPort }}
+            - containerPort: {{ .Values.metricsPort | default 39100}}
           env:
+            - name: LOGGING
+              value: "{{ .Values.env.logging | default "INFO"}}"
             - name: PORT
-              value: "{{ .Values.metricsPort }}"
+              value: "{{ .Values.env.metricsPort  | default 39100}}"
             - name: WAITDURATION
-              value: "{{ .Values.waitDuration }}"
+              value: "{{ .Values.env.waitDuration | default 60}}"
             - name: NAMESPACES
-              value: "{{ .Values.namespaces }}"
+              value: "{{ .Values.env.namespaces }}"
             - name:  FETCH_RESOURCE_ID_TO_NAME
-              value: "{{ .Values.fetchResourceIdToName }}"
+              value: "{{ .Values.env.fetchResourceIdToName | default false}}"
+            {{- if .Values.osUsername }}
             - name: OS_USERNAME
-              value: "{{ .Values.osUsername }}"
+              value: "{{ .Values.env.osUsername }}"
+            {{ end }}
+            {{- if .Values.osPassword }}
             - name: OS_PASSWORD
-              value: "{{ .Values.osPassword }}" 
+              value: "{{ .Values.env.osPassword }}" 
+            {{ end }}
+            {{- if .Values.osAccessKey }}
             - name: OS_ACCESS_KEY
-              value: "{{ .Values.osAccessKey }}" 
+              value: "{{ .Values.env.osAccessKey }}" 
+            {{ end }}
+            {{- if .Values.osSecretKey }}
             - name: OS_SECRET_KEY
-              value: "{{ .Values.osSecretKey }}"
+              value: "{{ .Values.env.osSecretKey }}"
+            {{ end }}
+            {{- if .Values.osProjectId }}
             - name: OS_PROJECT_ID
-              value: "{{ .Values.osProjectId }}"
+              value: "{{ .Values.env.osProjectId }}"
+            {{ end }}
+            {{- if .Values.osDomainName }}
             - name: OS_DOMAIN_NAME
-              value: "{{ .Values.osDomainName }}"
+              value: "{{ .Values.env.osDomainName }}"
+            {{ end }}
+          {{- if .Values.extraEnvFrom }}
+          envFrom:
+            {{- if .Values.extraEnvFrom.secretRef }}
+            secretRef:
+              name: {{ .Values.extraEnvFrom.secretRef.name }}
+            {{ end }}
+          {{ end }}

@@ -1,20 +1,32 @@
 image:
   imageRepository: "ghcr.io/iits-consulting"
+  imageName: "otc-prometheus-exporter"
   imageTag: "v0.4.0"
+  imagePullPolicy: "IfNotPresent"
+  imagePullSecrets:
+    name: ""
 
+env:
+  # Cannot be set via External Secrets:
+  namespaces: ""                # Default: ""
+  metricsPort: 39100            # Default 39100
+  waitDuration: 60              # Default 60
+  fetchResourceIdToName: false  # Default false
 
-osUsername: ""
-osPassword: ""
-osAccessKey: ""
-osSecretKey: ""
-osProjectId: ""
-osDomainName: ""
-namespaces: ""
-metricsPort: 39100
-waitDuration: 60
-fetchResourceIdToName: false
+  # Can be set via External Secrets:
+  osUsername: ""
+  osPassword: ""
+  osAccessKey: ""
+  osSecretKey: ""
+  osProjectId: ""
+  osDomainName: ""
+
+# Can reference an existing secret in the same namespace
+extraEnvFrom:
+  secretRef:
+    name: ""
 
 serviceMonitor:
-  enabled: false 
+  enabled: false
   labels:
     release: kube-prom
